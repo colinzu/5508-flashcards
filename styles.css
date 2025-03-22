@@ -1,0 +1,290 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #f5f5f7;
+    color: #1d1d1f;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 100%;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.lecture-selector {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.lecture-btn {
+    background-color: #0071e3;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.lecture-btn:hover {
+    background-color: #0077ed;
+}
+
+.lecture-btn.active {
+    background-color: #004c99;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #444;
+}
+
+#flashcard-container {
+    perspective: 1000px;
+    margin: 0 auto;
+    max-width: 350px;
+}
+
+.flashcard {
+    width: 100%;
+    height: 220px;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 16px;
+}
+
+.flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front, .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 16px;
+}
+
+/* 马卡龙色系 */
+.macaron-pink {
+    background-color: #FFD1DC;
+    color: #333;
+}
+
+.macaron-blue {
+    background-color: #ADDCFF;
+    color: #333;
+}
+
+.macaron-green {
+    background-color: #D0F0C0;
+    color: #333;
+}
+
+.macaron-yellow {
+    background-color: #FFFACD;
+    color: #333;
+}
+
+.macaron-purple {
+    background-color: #E6E6FA;
+    color: #333;
+}
+
+.macaron-orange {
+    background-color: #FFDAB9;
+    color: #333;
+}
+
+.flashcard-front {
+    /* 移除固定背景色，让马卡龙配色可以生效 */
+}
+
+.flashcard-back {
+    /* 移除固定背景色，让马卡龙配色可以生效 */
+    transform: rotateY(180deg);
+}
+
+#term {
+    font-size: 32px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+#pos-phonetic {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+}
+
+#pos {
+    color: #666;
+    font-style: italic;
+}
+
+.phonetic {
+    color: #0071e3;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.phonetic:hover {
+    color: #004c99;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.mark-control {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+#mark-known-btn {
+    background-color: #34c759;
+}
+
+#mark-known-btn:hover {
+    background-color: #30b650;
+}
+
+#reset-btn {
+    background-color: #ff3b30;
+}
+
+#reset-btn:hover {
+    background-color: #e0352b;
+}
+
+button {
+    background-color: #0071e3;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover:not(:disabled) {
+    background-color: #0077ed;
+}
+
+button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
+.progress {
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+}
+
+/* 马卡龙色按钮样式 */
+button.macaron-pink {
+    background-color: #FFB6C1;
+    color: #333;
+}
+button.macaron-pink:hover:not(:disabled) {
+    background-color: #FF99B3;
+}
+
+button.macaron-blue {
+    background-color: #9AC0FF;
+    color: #333;
+}
+button.macaron-blue:hover:not(:disabled) {
+    background-color: #81ACFF;
+}
+
+button.macaron-green {
+    background-color: #B7E3A8;
+    color: #333;
+}
+button.macaron-green:hover:not(:disabled) {
+    background-color: #A3D695;
+}
+
+button.macaron-yellow {
+    background-color: #F9E798;
+    color: #333;
+}
+button.macaron-yellow:hover:not(:disabled) {
+    background-color: #F5DB76;
+}
+
+button.macaron-purple {
+    background-color: #D8BFD8;
+    color: #333;
+}
+button.macaron-purple:hover:not(:disabled) {
+    background-color: #C9A9C9;
+}
+
+button.macaron-orange {
+    background-color: #FFCBA4;
+    color: #333;
+}
+button.macaron-orange:hover:not(:disabled) {
+    background-color: #FFBE8A;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 20px;
+    }
+    
+    .lecture-btn, button {
+        font-size: 14px;
+        padding: 6px 12px;
+    }
+} 

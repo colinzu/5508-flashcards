@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>5508 课程记忆卡片</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>5508 课程记忆卡片</h1>
+        
+        <div class="lecture-selector">
+            <button onclick="loadLecture(1)" class="lecture-btn">Lecture 1</button>
+            <button onclick="loadLecture(2)" class="lecture-btn">Lecture 2</button>
+            <button onclick="loadLecture(3)" class="lecture-btn">Lecture 3</button>
+            <button onclick="loadLecture(4)" class="lecture-btn">Lecture 4</button>
+        </div>
+        
+        <div class="stats">
+            <span>剩余: <span id="remaining-count">0</span></span>
+            <span>已掌握: <span id="known-count">0</span></span>
+        </div>
+        
+        <div id="flashcard-container">
+            <div class="flashcard">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <p id="term">选择一个讲义开始</p>
+                        <p id="pos-phonetic">
+                            <span id="pos"></span> 
+                            <span id="phonetic" class="phonetic"></span>
+                        </p>
+                    </div>
+                    <div class="flashcard-back">
+                        <p id="definition"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="prev-btn" disabled>上一个</button>
+                <button id="next-btn" disabled>下一个</button>
+            </div>
+            
+            <div class="mark-control">
+                <button id="mark-known-btn">标记为已掌握</button>
+                <button id="reset-btn">重置所有单词</button>
+            </div>
+            
+            <div class="progress">
+                <span id="current-card">0</span> / <span id="total-cards">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
