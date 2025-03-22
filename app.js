@@ -37,6 +37,7 @@ const closeModalButton = document.querySelector('.close-modal');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const cardPronounceBtn = document.getElementById('card-pronounce-btn');
 const cardToggleBtn = document.getElementById('card-toggle-btn');
+const confettiContainer = document.getElementById('confetti-container');
 
 // 马卡龙色系列表
 const macaronColors = [
@@ -47,9 +48,6 @@ const macaronColors = [
     'macaron-purple',
     'macaron-orange'
 ];
-
-// 添加变量记录上一次使用的颜色
-let lastUsedColor = '';
 
 // 初始化应用
 function init() {
@@ -125,46 +123,19 @@ function loadLastProgress() {
         const lastIndex = parseInt(localStorage.getItem(STORAGE_CURRENT_INDEX) || '0');
         
         // 设置当前讲义
-        currentLecture = lastLecture;
-        
-        // 更新UI显示当前选中的讲义
-        lectureButtons.forEach(btn => {
-            const btnLecture = parseInt(btn.dataset.lecture);
-            if (btnLecture == lastLecture) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-        
-        // 更新统计信息
-        updateStats();
+        loadLecture(lastLecture);
         
         // 设置当前索引（如果索引有效）
         if (!isNaN(lastIndex) && lastIndex >= 0) {
             const filteredCards = getFilteredCards();
             if (filteredCards.length > 0) {
                 currentCardIndex = Math.min(lastIndex, filteredCards.length - 1);
+                showCard();
             }
         }
-        
-        // 显示当前卡片
-        showCard();
-        
-        // 更新按钮状态
-        updateButtonStates();
     } else {
         // 如果没有保存状态或状态无效，默认选中Lecture 1
         loadLecture(1);
-        
-        // 确保Lecture 1选项被标记为激活
-        lectureButtons.forEach(btn => {
-            if (parseInt(btn.dataset.lecture) === 1) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
     }
 }
 
@@ -208,8 +179,7 @@ function loadLecture(lectureNumber) {
     
     // 更新UI显示当前选中的讲义
     lectureButtons.forEach(btn => {
-        const btnLecture = parseInt(btn.dataset.lecture);
-        if (btnLecture === lectureNumber) {
+        if (parseInt(btn.textContent.split(' ')[1]) === lectureNumber) {
             btn.classList.add('active');
         } else {
             btn.classList.remove('active');
@@ -278,18 +248,6 @@ function showCard() {
     currentCardElement.textContent = currentCardIndex + 1;
     totalCardsElement.textContent = filteredCards.length;
     
-    // 更新进度条下方左侧的进度显示
-    masteredCountElement.textContent = currentCardIndex + 1;
-    totalWordCountElement.textContent = filteredCards.length;
-    
-    // 更新已掌握单词数显示
-    const totalCards = lectureData[currentLecture].length;
-    const knownCount = lectureData[currentLecture].filter(card => {
-        const cardId = `${currentLecture}-${card.term}`;
-        return knownCards[cardId];
-    }).length;
-    knownWordCountElement.textContent = knownCount;
-    
     // 应用随机马卡龙色
     updateRandomColor();
     
@@ -337,17 +295,8 @@ function updateRandomColor() {
         nextButton.classList.remove(color);
     });
     
-    // 应用随机颜色，确保不会连续相同
-    let availableColors = [...macaronColors];
-    if (lastUsedColor) {
-        // 从可用颜色中排除上次使用的颜色
-        availableColors = availableColors.filter(color => color !== lastUsedColor);
-    }
-    
-    // 从可用颜色中随机选择一个
-    const randomColor = availableColors[Math.floor(Math.random() * availableColors.length)];
-    lastUsedColor = randomColor; // 记录本次使用的颜色
-    
+    // 应用随机颜色
+    const randomColor = macaronColors[Math.floor(Math.random() * macaronColors.length)];
     flashcardElement.querySelector('.flashcard-front').classList.add(randomColor);
     flashcardElement.querySelector('.flashcard-back').classList.add(randomColor);
     
@@ -381,37 +330,12 @@ function showNextCard() {
     const filteredCards = getFilteredCards();
     if (filteredCards.length === 0) return;
     
-    // 添加滑出动画
-    flashcardElement.classList.add('slide-out-left');
+    currentCardIndex = (currentCardIndex + 1) % filteredCards.length;
+    showCard();
+    updateButtonStates();
     
-    // 计算下一个卡片索引
-    const nextIndex = (currentCardIndex + 1) % filteredCards.length;
-    
-    // 等待滑出动画完成后显示下一张卡片
-    setTimeout(() => {
-        // 更新索引
-        currentCardIndex = nextIndex;
-        
-        // 清除滑出动画
-        flashcardElement.classList.remove('slide-out-left');
-        
-        // 更新卡片内容
-        showCard();
-        
-        // 添加滑入动画
-        flashcardElement.classList.add('slide-in-right');
-        
-        // 清除滑入动画
-        setTimeout(() => {
-            flashcardElement.classList.remove('slide-in-right');
-        }, 300);
-        
-        // 更新按钮状态
-        updateButtonStates();
-        
-        // 保存当前进度
-        saveProgress();
-    }, 300);
+    // 保存当前进度
+    saveProgress();
 }
 
 // 显示上一张卡片
@@ -421,37 +345,12 @@ function showPreviousCard() {
     const filteredCards = getFilteredCards();
     if (filteredCards.length === 0) return;
     
-    // 添加滑出动画
-    flashcardElement.classList.add('slide-out-right');
+    currentCardIndex = (currentCardIndex - 1 + filteredCards.length) % filteredCards.length;
+    showCard();
+    updateButtonStates();
     
-    // 计算上一个卡片索引
-    const prevIndex = (currentCardIndex - 1 + filteredCards.length) % filteredCards.length;
-    
-    // 等待滑出动画完成后显示上一张卡片
-    setTimeout(() => {
-        // 更新索引
-        currentCardIndex = prevIndex;
-        
-        // 清除滑出动画
-        flashcardElement.classList.remove('slide-out-right');
-        
-        // 更新卡片内容
-        showCard();
-        
-        // 添加滑入动画
-        flashcardElement.classList.add('slide-in-left');
-        
-        // 清除滑入动画
-        setTimeout(() => {
-            flashcardElement.classList.remove('slide-in-left');
-        }, 300);
-        
-        // 更新按钮状态
-        updateButtonStates();
-        
-        // 保存当前进度
-        saveProgress();
-    }, 300);
+    // 保存当前进度
+    saveProgress();
 }
 
 // 标记当前卡片为已掌握
@@ -485,6 +384,14 @@ function markCardAsKnown() {
             cardToggleBtn.setAttribute('aria-label', 'Mark as Learning');
             cardToggleBtn.setAttribute('title', 'Mark as Learning');
             cardToggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>';
+            
+            // 获取星星按钮位置
+            const rect = cardToggleBtn.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            // 产生撒花效果
+            createConfetti(x, y);
         }
         
         // 更新主要按钮的文本
@@ -505,11 +412,9 @@ function updateStats() {
     if (!currentLecture) {
         remainingCountElement.textContent = '0';
         knownCountElement.textContent = '0';
-        knownWordCountElement.textContent = '0';
         progressFill.style.width = '0%';
         masteredCountElement.textContent = '0';
         totalWordCountElement.textContent = '0';
-        allWordCountElement.textContent = '0';
         return;
     }
     
@@ -519,21 +424,16 @@ function updateStats() {
         return knownCards[cardId];
     }).length;
     
-    const learningCount = totalCards - knownCount;
-    
-    remainingCountElement.textContent = learningCount;
+    remainingCountElement.textContent = totalCards - knownCount;
     knownCountElement.textContent = knownCount;
-    knownWordCountElement.textContent = knownCount;
     
     // 更新进度条
     const progressPercentage = totalCards > 0 ? (knownCount / totalCards) * 100 : 0;
     progressFill.style.width = progressPercentage + '%';
     
-    // 更新进度数字 - 左侧显示"当前索引/学习中总数"
-    const filteredCards = getFilteredCards();
-    masteredCountElement.textContent = filteredCards.length > 0 ? currentCardIndex + 1 : 0;
-    totalWordCountElement.textContent = filteredCards.length;
-    allWordCountElement.textContent = totalCards;
+    // 更新进度数字
+    masteredCountElement.textContent = knownCount;
+    totalWordCountElement.textContent = totalCards;
 }
 
 // 朗读指定单词
@@ -586,19 +486,14 @@ function setupTouchGestures() {
     let startY = 0;
     let distX = 0;
     let distY = 0;
-    let isDragging = false;
     
     flashcardContainer.addEventListener('touchstart', function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
-        isDragging = true;
-        
-        // 清除所有可能的动画类
-        flashcardElement.classList.remove('slide-in-right', 'slide-in-left', 'slide-out-right', 'slide-out-left');
     }, false);
     
     flashcardContainer.addEventListener('touchmove', function(e) {
-        if (!startX || !startY || !isDragging) return;
+        if (!startX || !startY) return;
         
         distX = e.touches[0].clientX - startX;
         distY = e.touches[0].clientY - startY;
@@ -606,24 +501,10 @@ function setupTouchGestures() {
         // 阻止页面滚动
         if (Math.abs(distX) > Math.abs(distY)) {
             e.preventDefault();
-            
-            // 实时移动卡片
-            const moveX = Math.min(Math.max(distX, -100), 100); // 限制最大移动距离
-            flashcardElement.querySelector('.flashcard-inner').style.transform = `translateX(${moveX}px)`;
-            
-            // 根据滑动方向添加一点透明度效果
-            const opacity = 1 - Math.abs(moveX) / 200;
-            flashcardElement.querySelector('.flashcard-inner').style.opacity = opacity;
         }
     }, { passive: false });
     
     flashcardContainer.addEventListener('touchend', function(e) {
-        if (!isDragging) return;
-        
-        // 恢复卡片位置
-        flashcardElement.querySelector('.flashcard-inner').style.transform = '';
-        flashcardElement.querySelector('.flashcard-inner').style.opacity = '';
-        
         if (Math.abs(distX) > 50) {
             if (distX > 0) {
                 // 向右滑动，显示上一张
@@ -633,27 +514,13 @@ function setupTouchGestures() {
                 showNextCard();
             }
         }
+        // 轻触翻转由卡片的click事件处理
         
         // 重置
         startX = 0;
         startY = 0;
         distX = 0;
         distY = 0;
-        isDragging = false;
-    }, false);
-    
-    // 处理取消事件（例如用户在滑动过程中被中断）
-    flashcardContainer.addEventListener('touchcancel', function() {
-        // 恢复卡片位置
-        flashcardElement.querySelector('.flashcard-inner').style.transform = '';
-        flashcardElement.querySelector('.flashcard-inner').style.opacity = '';
-        
-        // 重置
-        startX = 0;
-        startY = 0;
-        distX = 0;
-        distY = 0;
-        isDragging = false;
     }, false);
 }
 
@@ -836,14 +703,121 @@ function renderWordList() {
 
 // 切换单词的已掌握状态
 function toggleWordStatus(cardId) {
-    if (knownCards[cardId]) {
+    const wasKnown = knownCards[cardId];
+    const toggleButton = document.querySelector(`.word-item[data-id="${cardId}"] .toggle-btn`);
+    
+    if (wasKnown) {
         delete knownCards[cardId]; // 如果已掌握，则取消掌握状态
+        
+        // 更新按钮样式
+        if (toggleButton) {
+            toggleButton.classList.remove('mastered');
+            toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"></path></svg>';
+            toggleButton.setAttribute('aria-label', 'Mark as Mastered');
+            toggleButton.setAttribute('title', 'Mark as Mastered');
+        }
     } else {
         knownCards[cardId] = true; // 如果未掌握，则标记为已掌握
+        
+        // 更新按钮样式
+        if (toggleButton) {
+            toggleButton.classList.add('mastered');
+            toggleButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>';
+            toggleButton.setAttribute('aria-label', 'Mark as Learning');
+            toggleButton.setAttribute('title', 'Mark as Learning');
+            
+            // 获取按钮位置
+            const rect = toggleButton.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            // 产生撒花效果
+            createConfetti(x, y);
+        }
     }
+    
     saveKnownCards();
     updateStats();
     renderWordList();
+}
+
+// 创建爆炸式撒花效果
+function createConfetti(x, y) {
+    // 清除之前的撒花
+    confettiContainer.innerHTML = '';
+    
+    // 创建多个撒花元素 - 使用马卡龙配色
+    const colors = [
+        '#f8bbd0', // 粉色
+        '#bbdefb', // 蓝色
+        '#c8e6c9', // 绿色
+        '#fff9c4', // 黄色
+        '#e1bee7', // 紫色
+        '#ffe0b2'  // 橙色
+    ];
+    
+    // 高亮颜色 - 与马卡龙颜色对应的更鲜艳版本
+    const brightColors = [
+        '#ec407a', // 亮粉色
+        '#42a5f5', // 亮蓝色
+        '#66bb6a', // 亮绿色
+        '#ffee58', // 亮黄色
+        '#ab47bc', // 亮紫色
+        '#ffa726'  // 亮橙色
+    ];
+    
+    const shapes = ['square', 'circle', 'triangle', 'star'];
+    
+    // 创建50-80个撒花元素 (增加数量)
+    const particleCount = Math.floor(Math.random() * 30) + 50;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = `confetti ${shapes[Math.floor(Math.random() * shapes.length)]}`;
+        
+        // 随机大小 (5px - 14px，更大范围的尺寸)
+        const size = Math.floor(Math.random() * 9) + 5;
+        confetti.style.width = `${size}px`;
+        confetti.style.height = `${size}px`;
+        
+        // 随机使用柔和颜色或鲜艳颜色
+        const colorSet = Math.random() > 0.4 ? colors : brightColors; // 增加鲜艳颜色的比例
+        confetti.style.backgroundColor = colorSet[Math.floor(Math.random() * colorSet.length)];
+        
+        // 随机起始位置（以点击位置为中心）
+        confetti.style.left = `${x}px`;
+        confetti.style.top = `${y}px`;
+        
+        // 使用极坐标方式随机生成方向和距离，实现360度全方位扩散
+        const angle = Math.random() * Math.PI * 2; // 0-2π的随机角度
+        const distance = 50 + Math.random() * 250; // 50-300px的随机距离
+        
+        // 将极坐标转换为笛卡尔坐标
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        // 随机旋转角度 (-360到720度，更大范围的旋转)
+        const rotate = Math.random() * 1080 - 360;
+        
+        // 设置CSS变量以供动画使用
+        confetti.style.setProperty('--tx', `${tx}px`);
+        confetti.style.setProperty('--ty', `${ty}px`);
+        confetti.style.setProperty('--rotate', `${rotate}deg`);
+        
+        // 随机延迟启动 (延长延迟时间，创造更连续的效果)
+        confetti.style.animationDelay = `${Math.random() * 0.4}s`;
+        
+        // 随机动画持续时间 (1.2-2.2秒)
+        confetti.style.animationDuration = `${1.2 + Math.random()}s`;
+        
+        // 添加到容器
+        confettiContainer.appendChild(confetti);
+    }
+    
+    // 2.5秒后移除所有撒花元素 (延长显示时间)
+    setTimeout(() => {
+        confettiContainer.innerHTML = '';
+    }, 2500);
 }
 
 // 页面加载完成后初始化应用
