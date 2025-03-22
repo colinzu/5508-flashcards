@@ -10,16 +10,38 @@
     <div class="container">
         <h1>5508 Course Flashcards</h1>
         
-        <div class="lecture-selector">
-            <button onclick="loadLecture(1)" class="lecture-btn">Lecture 1</button>
-            <button onclick="loadLecture(2)" class="lecture-btn">Lecture 2</button>
-            <button onclick="loadLecture(3)" class="lecture-btn">Lecture 3</button>
-            <button onclick="loadLecture(4)" class="lecture-btn">Lecture 4</button>
+        <div class="lecture-selector-container">
+            <div class="lecture-scroll-wrapper">
+                <div class="lecture-selector">
+                    <button onclick="loadLecture(1)" class="lecture-btn" data-lecture="1">Lecture 1</button>
+                    <button onclick="loadLecture(2)" class="lecture-btn" data-lecture="2">Lecture 2</button>
+                    <button onclick="loadLecture(3)" class="lecture-btn" data-lecture="3">Lecture 3</button>
+                    <button onclick="loadLecture(4)" class="lecture-btn" data-lecture="4">Lecture 4</button>
+                </div>
+            </div>
         </div>
         
         <div class="stats">
             <span>Remaining: <span id="remaining-count">0</span></span>
             <span>Mastered: <span id="known-count">0</span></span>
+        </div>
+        
+        <!-- 进度条 -->
+        <div class="progress-bar-container" id="progress-bar-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-info">
+                <div class="mastered-count">
+                    Mastered: <span id="known-word-count">0</span>
+                </div>
+                <div class="progress-text">
+                    <span id="mastered-count">0</span>/<span id="total-word-count">0</span>
+                </div>
+                <div class="total-words">
+                    All: <span id="all-word-count">0</span>
+                </div>
+            </div>
         </div>
         
         <div id="flashcard-container">
@@ -31,6 +53,19 @@
                             <span id="pos"></span> 
                             <span id="phonetic" class="phonetic"></span>
                         </p>
+                        <!-- 添加操作按钮 -->
+                        <div class="card-action">
+                            <button id="card-pronounce-btn" class="pronounce-btn action-btn" aria-label="Pronounce" title="Pronounce">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path>
+                                </svg>
+                            </button>
+                            <button id="card-toggle-btn" class="toggle-btn action-btn" aria-label="Mark as Mastered" title="Mark as Mastered">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="flashcard-back">
                         <p id="definition"></p>
@@ -50,6 +85,26 @@
             
             <div class="progress">
                 <span id="current-card">0</span> / <span id="total-cards">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 单词列表弹窗 -->
+    <div id="word-list-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Word List</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="word-list-container">
+                <div class="word-list-tabs">
+                    <button class="tab-btn active" data-tab="all">All</button>
+                    <button class="tab-btn" data-tab="mastered">Mastered</button>
+                    <button class="tab-btn" data-tab="remaining">Learning</button>
+                </div>
+                <div id="word-list" class="word-list">
+                    <!-- 单词列表将通过JavaScript动态生成 -->
+                </div>
             </div>
         </div>
     </div>
