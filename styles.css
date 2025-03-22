@@ -169,10 +169,13 @@ h1 {
 }
 
 .flashcard {
+    perspective: 1000px;
+    background-color: transparent;
     width: 100%;
-    height: 220px;
-    position: relative;
-    margin-bottom: var(--spacing-4);
+    max-width: 350px;
+    height: 210px;
+    margin: var(--spacing-4) auto;
+    border-radius: var(--border-radius-xl);
 }
 
 .flashcard-inner {
@@ -203,6 +206,12 @@ h1 {
     padding: var(--spacing-3);
     border-radius: var(--border-radius-xl);
     background-color: white;
+    overflow: hidden; /* 防止内容溢出 */
+}
+
+.flashcard-back {
+    transform: rotateY(180deg);
+    justify-content: center; /* 定义文本居中对齐 */
 }
 
 /* 马卡龙色系 - 改用MUI调色板 */
@@ -1004,7 +1013,7 @@ button.macaron-orange:hover:not(:disabled) {
     transition: width 0.4s ease, height 0.4s ease, opacity 0s;
 }
 
-/* 卡片滑动动画 */
+/* 滑动动画 */
 @keyframes slideInRight {
     from {
         transform: translateX(100%);
@@ -1050,19 +1059,39 @@ button.macaron-orange:hover:not(:disabled) {
 }
 
 .flashcard.slide-in-right .flashcard-inner {
-    animation: slideInRight 0.3s forwards;
+    animation: slideInRight 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+}
+
+/* 确保翻转状态优先于滑动动画 */
+.flashcard.slide-in-right.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+    animation: none;
 }
 
 .flashcard.slide-in-left .flashcard-inner {
-    animation: slideInLeft 0.3s forwards;
+    animation: slideInLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+}
+
+/* 确保翻转状态优先于滑动动画 */
+.flashcard.slide-in-left.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+    animation: none;
 }
 
 .flashcard.slide-out-right .flashcard-inner {
-    animation: slideOutRight 0.3s forwards;
+    animation: slideOutRight 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
 }
 
 .flashcard.slide-out-left .flashcard-inner {
-    animation: slideOutLeft 0.3s forwards;
+    animation: slideOutLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
 }
 
 /* 爆炸式撒花效果 */
@@ -1112,4 +1141,139 @@ button.macaron-orange:hover:not(:disabled) {
 
 .confetti.circle {
     border-radius: 50%;
+}
+
+/* 完成情话卡片样式 */
+.completion-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fade-in 0.5s ease-out;
+}
+
+.completion-card {
+    background-color: white;
+    border-radius: 16px;
+    padding: 30px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: var(--shadow-3);
+    animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.completion-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
+}
+
+.completion-card.macaron-pink::before { background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%); }
+.completion-card.macaron-blue::before { background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); }
+.completion-card.macaron-green::before { background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%); }
+.completion-card.macaron-yellow::before { background: linear-gradient(90deg, #f6d365 0%, #fda085 100%); }
+.completion-card.macaron-purple::before { background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%); }
+.completion-card.macaron-orange::before { background: linear-gradient(90deg, #ff9a44 0%, #fc6076 100%); }
+
+.completion-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    display: inline-block;
+    animation: bounce 1s ease infinite;
+}
+
+.completion-card h2 {
+    margin: 0 0 20px;
+    color: var(--grey-900);
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.completion-message {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--grey-800);
+    margin: 0 0 25px;
+    padding: 0 10px;
+    font-weight: 500;
+}
+
+.completion-signature {
+    font-size: 16px;
+    color: var(--grey-600);
+    font-style: italic;
+    margin: 5px 0 25px;
+    text-align: right;
+    padding-right: 20px;
+}
+
+.completion-close-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-1);
+}
+
+.completion-close-btn:hover {
+    background-color: var(--primary-dark);
+    box-shadow: var(--shadow-2);
+    transform: translateY(-2px);
+}
+
+.completion-close-btn:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-1);
+}
+
+.fade-out {
+    animation: fade-out 0.5s ease-out forwards;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes pop-in {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 } 
