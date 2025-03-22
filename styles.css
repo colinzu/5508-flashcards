@@ -837,7 +837,7 @@ button.macaron-orange:hover:not(:disabled) {
 /* 卡片中的操作按钮容器 */
 .card-action {
     display: flex;
-    gap: 12px;
+    gap: 24px;
     margin-top: 16px;
     justify-content: center;
 }
