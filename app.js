@@ -98,10 +98,10 @@ function loadLecture(lectureNumber) {
 // 显示当前卡片
 function showCard() {
     if (!currentLecture || getFilteredCards().length === 0) {
-        termElement.textContent = '请选择一个讲义';
+        termElement.textContent = 'Please select a lecture';
         posElement.textContent = '';
         phoneticElement.textContent = '';
-        definitionElement.textContent = '所有卡片已标记为已掌握';
+        definitionElement.textContent = 'All cards have been marked as mastered';
         updateRandomColor();
         return;
     }
@@ -328,7 +328,7 @@ function resetKnownCards() {
     if (!currentLecture) return;
     
     // 确认对话框
-    if (confirm('确定要重置所有已掌握的单词吗？这将清除您的学习进度。')) {
+    if (confirm('Are you sure you want to reset all mastered words? This will clear your learning progress.')) {
         // 清空当前讲义的已掌握卡片
         const lectureCards = lectureData[currentLecture];
         lectureCards.forEach(card => {
@@ -348,7 +348,7 @@ function resetKnownCards() {
         updateButtonStates();
         
         // 提示用户重置成功
-        alert('重置成功，所有单词已恢复到未掌握状态！');
+        alert('Reset successful! All words have been restored to unmastered state.');
     }
 }
 

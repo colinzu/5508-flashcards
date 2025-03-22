@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>5508 课程记忆卡片</title>
+    <title>5508 Course Flashcards</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>5508 课程记忆卡片</h1>
+        <h1>5508 Course Flashcards</h1>
         
         <div class="lecture-selector">
             <button onclick="loadLecture(1)" class="lecture-btn">Lecture 1</button>
@@ -18,15 +18,15 @@
         </div>
         
         <div class="stats">
-            <span>剩余: <span id="remaining-count">0</span></span>
-            <span>已掌握: <span id="known-count">0</span></span>
+            <span>Remaining: <span id="remaining-count">0</span></span>
+            <span>Mastered: <span id="known-count">0</span></span>
         </div>
         
         <div id="flashcard-container">
             <div class="flashcard">
                 <div class="flashcard-inner">
                     <div class="flashcard-front">
-                        <p id="term">选择一个讲义开始</p>
+                        <p id="term">Select a lecture to start</p>
                         <p id="pos-phonetic">
                             <span id="pos"></span> 
                             <span id="phonetic" class="phonetic"></span>
@@ -39,13 +39,13 @@
             </div>
             
             <div class="controls">
-                <button id="prev-btn" disabled>上一个</button>
-                <button id="next-btn" disabled>下一个</button>
+                <button id="prev-btn" disabled>Previous</button>
+                <button id="next-btn" disabled>Next</button>
             </div>
             
             <div class="mark-control">
-                <button id="mark-known-btn">标记为已掌握</button>
-                <button id="reset-btn">重置所有单词</button>
+                <button id="mark-known-btn">Mark as Mastered</button>
+                <button id="reset-btn">Reset All Words</button>
             </div>
             
             <div class="progress">
