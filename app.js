@@ -4,11 +4,13 @@ let currentCardIndex = 0;
 let isFlipped = false;
 let knownCards = {}; // 存储已掌握的卡片
 let currentTabFilter = 'all'; // 当前标签过滤器：all, mastered, remaining
+let memoryMode = false; // 记忆模式状态
 
 // 本地存储键名
 const STORAGE_KNOWN_CARDS = 'flashcards_knownCards';
 const STORAGE_CURRENT_LECTURE = 'flashcards_currentLecture';
 const STORAGE_CURRENT_INDEX = 'flashcards_currentIndex';
+const STORAGE_MEMORY_MODE = 'flashcards_memoryMode'; // 记忆模式存储键
 
 // DOM元素
 const flashcardElement = document.querySelector('.flashcard');
@@ -38,6 +40,7 @@ const tabButtons = document.querySelectorAll('.tab-btn');
 const cardPronounceBtn = document.getElementById('card-pronounce-btn');
 const cardToggleBtn = document.getElementById('card-toggle-btn');
 const confettiContainer = document.getElementById('confetti-container');
+const memoryModeToggle = document.getElementById('memory-mode-toggle'); // 记忆模式开关
 
 // 马卡龙色系列表
 const macaronColors = [
@@ -199,6 +202,31 @@ function init() {
     
     // 从本地存储加载上次的学习进度
     loadLastProgress();
+    
+    // 加载记忆模式设置
+    loadMemoryModeSettings();
+    
+    // 添加记忆模式开关的事件监听器
+    if (memoryModeToggle) {
+        memoryModeToggle.addEventListener('change', function() {
+            memoryMode = this.checked;
+            saveMemoryModeSettings();
+            
+            // 根据记忆模式的变化立即更新当前卡片的显示状态
+            if (currentLecture) {
+                // 如果开启记忆模式且当前卡片未翻转，自动翻转
+                if (memoryMode && !isFlipped) {
+                    flashcardElement.classList.add('flipped');
+                    isFlipped = true;
+                } 
+                // 如果关闭记忆模式且当前卡片已翻转，自动翻转回正面
+                else if (!memoryMode && isFlipped) {
+                    flashcardElement.classList.remove('flipped');
+                    isFlipped = false;
+                }
+            }
+        });
+    }
 }
 
 // 从本地存储加载上次的学习进度
@@ -257,14 +285,9 @@ function saveProgress() {
 
 // 从本地存储加载已掌握的卡片
 function loadKnownCards() {
-    const savedData = localStorage.getItem(STORAGE_KNOWN_CARDS);
-    if (savedData) {
-        try {
-            knownCards = JSON.parse(savedData);
-        } catch (e) {
-            console.error('Error parsing known cards data:', e);
-            knownCards = {};
-        }
+    const storedCards = localStorage.getItem(STORAGE_KNOWN_CARDS);
+    if (storedCards) {
+        knownCards = JSON.parse(storedCards);
     }
 }
 
@@ -274,6 +297,22 @@ function saveKnownCards() {
     
     // 更新界面统计信息
     updateStats();
+}
+
+// 加载记忆模式设置
+function loadMemoryModeSettings() {
+    const savedMode = localStorage.getItem(STORAGE_MEMORY_MODE);
+    if (savedMode !== null) {
+        memoryMode = savedMode === 'true';
+        if (memoryModeToggle) {
+            memoryModeToggle.checked = memoryMode;
+        }
+    }
+}
+
+// 保存记忆模式设置
+function saveMemoryModeSettings() {
+    localStorage.setItem(STORAGE_MEMORY_MODE, memoryMode.toString());
 }
 
 // 加载指定讲义的卡片
@@ -369,6 +408,22 @@ function showCard() {
     
     // 重置卡片到正面朝上 - 但不改变现有的翻转状态
     console.log('加载卡片前的状态:', isFlipped);
+    
+    // 检查记忆模式，如果开启则自动翻转卡片
+    if (memoryMode) {
+        // 如果没有翻转，则进行翻转
+        if (!isFlipped) {
+            setTimeout(() => {
+                flipCard(); // 使用setTimeout确保DOM已更新
+            }, 50);
+        }
+    } else {
+        // 非记忆模式，确保卡片正面朝上
+        if (isFlipped) {
+            isFlipped = false;
+            flashcardElement.classList.remove('flipped');
+        }
+    }
     
     // 检查并更新收藏状态
     const cardId = `${currentLecture}-${card.term}`;
@@ -491,8 +546,8 @@ function showNextCard() {
         
         // 等待动画结束后更新卡片内容
         setTimeout(() => {
-            // 确保在显示新卡片前重置翻转状态
-            if (isFlipped) {
+            // 确保在显示新卡片前重置翻转状态 - 非记忆模式下
+            if (isFlipped && !memoryMode) {
                 isFlipped = false;
                 flashcardElement.classList.remove('flipped');
             }
@@ -542,8 +597,8 @@ function showPreviousCard() {
         
         // 等待动画结束后更新卡片内容
         setTimeout(() => {
-            // 确保在显示新卡片前重置翻转状态
-            if (isFlipped) {
+            // 确保在显示新卡片前重置翻转状态 - 非记忆模式下
+            if (isFlipped && !memoryMode) {
                 isFlipped = false;
                 flashcardElement.classList.remove('flipped');
             }
@@ -681,8 +736,8 @@ function markCardAsKnown() {
         // 如果所有单词都已掌握，不需要切换到下一张卡片
         if (!allMastered) {
             setTimeout(() => {
-                // 确保在切换卡片前重置翻转状态
-                if (isFlipped) {
+                // 确保在切换卡片前重置翻转状态 - 非记忆模式下
+                if (isFlipped && !memoryMode) {
                     isFlipped = false;
                     flashcardElement.classList.remove('flipped');
                 }
@@ -783,8 +838,60 @@ function pronounceSpecificWord(word) {
     
     try {
         const speech = new SpeechSynthesisUtterance(word);
-        speech.lang = 'en-US'; // 设置美式英语
-        speech.rate = 0.8; // 调整语速
+        
+        // 获取可用的声音
+        const voices = window.speechSynthesis.getVoices();
+        
+        // 寻找合适的美式英语声音
+        let selectedVoice = null;
+        
+        // 优先选择美式英语声音
+        const preferredVoices = [
+            'Google US English',         // 谷歌美式英语
+            'Microsoft David Desktop',   // 微软美式英语男声
+            'Microsoft Zira Desktop',    // 微软美式英语女声
+            'Samantha',                  // macOS上的美式英语声音
+            'Alex',                      // macOS上的美式英语男声
+            'Google UK English Female',  // 备选：谷歌英式英语女声
+            'Karen',                     // 备选：澳大利亚英语女声
+            'Moira'                      // 备选：爱尔兰英语女声
+        ];
+        
+        // 先尝试从首选列表中寻找
+        for (const voiceName of preferredVoices) {
+            const voice = voices.find(v => v.name === voiceName);
+            if (voice) {
+                selectedVoice = voice;
+                break;
+            }
+        }
+        
+        // 如果没有找到首选声音，尝试找任何美式英语声音
+        if (!selectedVoice) {
+            selectedVoice = voices.find(voice => 
+                (voice.lang === 'en-US' || voice.lang.includes('en-US')) && 
+                (voice.name.includes('Google') || voice.name.includes('Microsoft') || voice.name.includes('US'))
+            );
+        }
+        
+        // 如果还是没找到，使用任何可用的英语声音
+        if (!selectedVoice) {
+            selectedVoice = voices.find(voice => voice.lang.includes('en'));
+        }
+        
+        // 如果找到了合适的声音，设置它
+        if (selectedVoice) {
+            speech.voice = selectedVoice;
+            console.log('使用声音:', selectedVoice.name);
+        } else {
+            // 如果没有找到特定声音，设置标准参数
+            speech.lang = 'en-US'; // 确保使用美式英语
+        }
+        
+        // 调整语音参数以使其更自然
+        speech.rate = 0.85;     // 稍微减慢语速
+        speech.pitch = 1.0;     // 标准音调（美式英语通常音调稍低）
+        speech.volume = 1.0;    // 确保足够的音量
         
         console.log('尝试朗读:', word);
         
@@ -871,8 +978,8 @@ function setupTouchGestures() {
         
         // 如果滑动距离足够大，切换卡片
         if (Math.abs(distX) > 50) {
-            // 确保在切换卡片前重置翻转状态
-            if (isFlipped) {
+            // 确保在切换卡片前重置翻转状态 - 非记忆模式下
+            if (isFlipped && !memoryMode) {
                 isFlipped = false;
                 flashcardElement.classList.remove('flipped');
             }
