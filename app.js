@@ -347,7 +347,7 @@ function loadLecture(lectureNumber) {
 }
 
 // 显示当前卡片
-function showCard() {
+function showCard(autoFlip = true) {
     if (!currentLecture || getFilteredCards().length === 0) {
         termElement.textContent = 'Please select a lecture';
         posElement.textContent = '';
@@ -409,19 +409,22 @@ function showCard() {
     // 重置卡片到正面朝上 - 但不改变现有的翻转状态
     console.log('加载卡片前的状态:', isFlipped);
     
-    // 检查记忆模式，如果开启则自动翻转卡片
-    if (memoryMode) {
-        // 如果没有翻转，则进行翻转
-        if (!isFlipped) {
-            setTimeout(() => {
-                flipCard(); // 使用setTimeout确保DOM已更新
-            }, 50);
-        }
-    } else {
-        // 非记忆模式，确保卡片正面朝上
-        if (isFlipped) {
-            isFlipped = false;
-            flashcardElement.classList.remove('flipped');
+    // 只有当autoFlip为true时才执行自动翻转逻辑
+    if (autoFlip) {
+        // 检查记忆模式，如果开启则自动翻转卡片
+        if (memoryMode) {
+            // 如果没有翻转，则进行翻转
+            if (!isFlipped) {
+                setTimeout(() => {
+                    flipCard(); // 使用setTimeout确保DOM已更新
+                }, 50);
+            }
+        } else {
+            // 非记忆模式，确保卡片正面朝上
+            if (isFlipped) {
+                isFlipped = false;
+                flashcardElement.classList.remove('flipped');
+            }
         }
     }
     
@@ -546,8 +549,9 @@ function showNextCard() {
         
         // 等待动画结束后更新卡片内容
         setTimeout(() => {
-            // 确保在显示新卡片前重置翻转状态 - 非记忆模式下
-            if (isFlipped && !memoryMode) {
+            // 如果不是记忆模式，确保卡片正面朝上
+            // 在记忆模式下，保持翻转状态以避免闪烁
+            if (!memoryMode && isFlipped) {
                 isFlipped = false;
                 flashcardElement.classList.remove('flipped');
             }
@@ -555,8 +559,14 @@ function showNextCard() {
             // 更新卡片索引
             currentCardIndex = (currentCardIndex + 1) % filteredCards.length;
             
+            // 在记忆模式下，预先设置翻转状态，避免内容加载后再翻转造成闪烁
+            if (memoryMode && !isFlipped) {
+                isFlipped = true;
+                flashcardElement.classList.add('flipped');
+            }
+            
             // 更新卡片内容
-            showCard();
+            showCard(false); // 传入false参数表示不要自动翻转
             updateButtonStates();
             
             // 移除滑出动画类
@@ -597,8 +607,9 @@ function showPreviousCard() {
         
         // 等待动画结束后更新卡片内容
         setTimeout(() => {
-            // 确保在显示新卡片前重置翻转状态 - 非记忆模式下
-            if (isFlipped && !memoryMode) {
+            // 如果不是记忆模式，确保卡片正面朝上
+            // 在记忆模式下，保持翻转状态以避免闪烁
+            if (!memoryMode && isFlipped) {
                 isFlipped = false;
                 flashcardElement.classList.remove('flipped');
             }
@@ -606,8 +617,14 @@ function showPreviousCard() {
             // 更新卡片索引
             currentCardIndex = (currentCardIndex - 1 + filteredCards.length) % filteredCards.length;
             
+            // 在记忆模式下，预先设置翻转状态，避免内容加载后再翻转造成闪烁
+            if (memoryMode && !isFlipped) {
+                isFlipped = true;
+                flashcardElement.classList.add('flipped');
+            }
+            
             // 更新卡片内容
-            showCard();
+            showCard(false); // 传入false参数表示不要自动翻转
             updateButtonStates();
             
             // 移除滑出动画类
