@@ -848,77 +848,117 @@ function pronounceWord() {
 
 // 朗读指定单词
 function pronounceSpecificWord(word) {
-    if (!word) {
-        console.log('没有要朗读的单词');
-        return;
-    }
-    
     try {
+        // 如果没有词汇可读，直接返回
+        if (!word) return;
+        
+        console.log('准备朗读:', word);
+        
         const speech = new SpeechSynthesisUtterance(word);
         
-        // 获取可用的声音
-        const voices = window.speechSynthesis.getVoices();
+        // 获取可用的语音
+        let voices = window.speechSynthesis.getVoices();
         
-        // 寻找合适的美式英语声音
-        let selectedVoice = null;
-        
-        // 优先选择美式英语声音
-        const preferredVoices = [
-            'Google US English',         // 谷歌美式英语
-            'Microsoft David Desktop',   // 微软美式英语男声
-            'Microsoft Zira Desktop',    // 微软美式英语女声
-            'Samantha',                  // macOS上的美式英语声音
-            'Alex',                      // macOS上的美式英语男声
-            'Google UK English Female',  // 备选：谷歌英式英语女声
-            'Karen',                     // 备选：澳大利亚英语女声
-            'Moira'                      // 备选：爱尔兰英语女声
-        ];
-        
-        // 先尝试从首选列表中寻找
-        for (const voiceName of preferredVoices) {
-            const voice = voices.find(v => v.name === voiceName);
-            if (voice) {
-                selectedVoice = voice;
-                break;
-            }
-        }
-        
-        // 如果没有找到首选声音，尝试找任何美式英语声音
-        if (!selectedVoice) {
-            selectedVoice = voices.find(voice => 
-                (voice.lang === 'en-US' || voice.lang.includes('en-US')) && 
-                (voice.name.includes('Google') || voice.name.includes('Microsoft') || voice.name.includes('US'))
-            );
-        }
-        
-        // 如果还是没找到，使用任何可用的英语声音
-        if (!selectedVoice) {
-            selectedVoice = voices.find(voice => voice.lang.includes('en'));
-        }
-        
-        // 如果找到了合适的声音，设置它
-        if (selectedVoice) {
-            speech.voice = selectedVoice;
-            console.log('使用声音:', selectedVoice.name);
+        // 在某些浏览器（特别是Safari）中，voices可能在页面加载时不可用
+        if (voices.length === 0) {
+            console.log('语音列表为空，等待onvoiceschanged事件');
+            window.speechSynthesis.onvoiceschanged = function() {
+                voices = window.speechSynthesis.getVoices();
+                console.log('获取到语音列表:', voices.length);
+                setVoiceAndSpeak();
+            };
         } else {
-            // 如果没有找到特定声音，设置标准参数
-            speech.lang = 'en-US'; // 确保使用美式英语
+            console.log('检测到', voices.length, '个语音选项');
+            setVoiceAndSpeak();
         }
         
-        // 调整语音参数以使其更自然
-        speech.rate = 0.85;     // 稍微减慢语速
-        speech.pitch = 1.0;     // 标准音调（美式英语通常音调稍低）
-        speech.volume = 1.0;    // 确保足够的音量
-        
-        console.log('尝试朗读:', word);
-        
-        // 确保取消所有正在进行的朗读
-        window.speechSynthesis.cancel();
-        
-        // 在短暂延迟后开始新的朗读，确保前一个朗读已完全取消
-        setTimeout(() => {
-            window.speechSynthesis.speak(speech);
-        }, 50);
+        function setVoiceAndSpeak() {
+            let selectedVoice = null;
+            
+            // 列出所有可用的声音用于调试
+            if (voices.length > 0) {
+                console.log('可用的语音:');
+                voices.forEach((voice, index) => {
+                    console.log(`${index}. ${voice.name} (${voice.lang}) - 默认:${voice.default}, 本地:${voice.localService}`);
+                });
+            }
+            
+            // 始终尝试使用Google US English
+            selectedVoice = voices.find(voice => voice.name === 'Google US English');
+            
+            // 如果找到了Google US English，立即使用它
+            if (selectedVoice) {
+                console.log('使用Google US English声音');
+                speech.voice = selectedVoice;
+                // 保存首选声音以便下次使用
+                localStorage.setItem('preferred_voice', selectedVoice.name);
+            } 
+            // 如果没有找到Google US English，尝试使用名称中包含Google和US/English的声音
+            else {
+                console.log('未找到Google US English，尝试查找类似的声音');
+                selectedVoice = voices.find(voice => 
+                    voice.name.includes('Google') && 
+                    (voice.name.includes('US') || voice.name.includes('English'))
+                );
+                
+                if (selectedVoice) {
+                    console.log('使用替代Google声音:', selectedVoice.name);
+                    speech.voice = selectedVoice;
+                    localStorage.setItem('preferred_voice', selectedVoice.name);
+                }
+                // 如果仍然没有找到合适的谷歌声音，使用任何美式英语声音
+                else {
+                    console.log('未找到Google声音，尝试任何美式英语声音');
+                    selectedVoice = voices.find(voice => voice.lang === 'en-US');
+                    
+                    if (selectedVoice) {
+                        console.log('使用美式英语声音:', selectedVoice.name);
+                        speech.voice = selectedVoice;
+                    }
+                    // 最后的后备选项 - 任何英语声音
+                    else {
+                        console.log('未找到美式英语声音，尝试任何英语声音');
+                        selectedVoice = voices.find(voice => voice.lang.includes('en'));
+                        
+                        if (selectedVoice) {
+                            console.log('使用任何英语声音:', selectedVoice.name);
+                            speech.voice = selectedVoice;
+                        } else {
+                            // 如果什么都没找到，设置为英语
+                            console.log('未找到任何英语声音，使用默认语言设置');
+                            speech.lang = 'en-US';
+                        }
+                    }
+                }
+            }
+            
+            // 使用统一的语音参数
+            speech.rate = 0.9;      // 稍慢的速度，使发音更清晰
+            speech.pitch = 1.0;     // 标准音调
+            speech.volume = 1.0;    // 最大音量
+            
+            // 添加音频环境增强
+            speech.onstart = function() {
+                console.log('语音开始播放:', word);
+            };
+            
+            speech.onend = function() {
+                console.log('语音播放结束');
+            };
+            
+            speech.onerror = function(event) {
+                console.error('语音播放出错:', event.error);
+            };
+            
+            // 确保取消所有正在进行的朗读
+            window.speechSynthesis.cancel();
+            
+            // 在短暂延迟后开始新的朗读
+            setTimeout(() => {
+                console.log('开始朗读:', word, '使用声音:', selectedVoice ? selectedVoice.name : '默认声音');
+                window.speechSynthesis.speak(speech);
+            }, 50);
+        }
     } catch (error) {
         console.error('朗读出错:', error);
     }
